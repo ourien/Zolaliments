@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="fr" class="transition-colors duration-300">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zolaliment - Guide Nutritionnel</title>
+    
+    <!-- Favicon thématique (Pomme verte 🍏) -->
+    <link class="js-favicon" rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍏</text></svg>">
+    
+    <!-- Chargement de Tailwind CSS avec configuration Dark Mode activée -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode:'class',
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen transition-colors duration-300 dark:bg-gray-950 dark:text-gray-100">
+
+    <!-- En-tête de l'application (Header adaptatif avec bouton Thème) -->
+    <header class="bg-emerald-600 dark:bg-emerald-900 text-white shadow-md transition-colors duration-300">
+        <div class="container mx-auto px-4 py-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-apple-whole text-3xl"></i>
+                <h1 class="text-3xl font-extrabold tracking-tight">zolaliment</h1>
+            </div>
+            <div class="flex items-center space-x-6">
+                <p class="text-emerald-100 text-sm md:text-base text-center md:text-right hidden sm:block">
+                    Votre guide simple pour comprendre ce que vous mangez.
+                </p>
+                <!-- Bouton Thème Jour/Nuit -->
+                <button onclick="toggleTheme()" class="p-2.5 rounded-full bg-emerald-700/50 hover:bg-emerald-700 dark:bg-emerald-800/50 dark:hover:bg-emerald-800 text-white transition focus:outline-none shadow-sm flex items-center justify-center" aria-label="Changer de thème">
+                    <i id="themeIcon" class="fa-solid fa-moon text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Section Recherche -->
+        <section class="mb-10 text-center">
+            <h2 class="text-2xl font-bold text-gray-700 dark:text-gray-300 mb-4">Recherchez un aliment ou découvrez ses propriétés</h2>
+            <div class="max-w-xl mx-auto relative">
+                <input type="text" id="searchBar" onkeyup="filterFoods()" placeholder="Ex: Myrtille, Citron, Lentilles, Gingembre, Poulet..." 
+                    class="w-full px-5 py-3 pl-12 rounded-full border border-gray-300 dark:border-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition dark:bg-gray-900 dark:text-white dark:placeholder-gray-400">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-4 text-gray-400"></i>
+            </div>
+        </section>
+
+        <!-- Grille principale responsive -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Zone des résultats d'aliments -->
+            <div class="lg:col-span-2">
+                <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-6 flex items-center">
+                    <i class="fa-solid fa-utensils text-emerald-600 mr-2"></i> Aliments disponibles
+                </h3>
+                <div id="foodsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Les cartes d'aliments seront générées ici par le script JS -->
+                </div>
+                <div id="noResult" class="hidden text-center py-10 text-gray-500">
+                    <i class="fa-regular fa-face-frown text-4xl mb-3"></i>
+                    <p>Aucun aliment ne correspond à votre recherche.</p>
+                </div>
+            </div>
+
+            <!-- Formulaire d'ajout d'aliments -->
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 self-start lg:sticky lg:top-6 transition-colors duration-300">
+                <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4 flex items-center">
+                    <i class="fa-solid fa-plus-circle text-emerald-600 mr-2"></i> Ajouter un aliment
+                </h3>
+                <form id="addFoodForm" onsubmit="addNewFood(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nom de l'aliment</label>
+                        <input type="text" id="foodName" required class="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-800 rounded-lg focus:ring-emerald-500 focus:border-emerald-500 text-sm dark:bg-gray-800 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lien de l'image (Optionnel)</label>
+                        <input type="url" id="foodImg" placeholder="https://exemple.com/image.jpg" class="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-800 rounded-lg text-sm dark:bg-gray-800 dark:text-white">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Calories (kcal)</label>
+                            <input type="number" id="foodCal" required class="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-800 rounded-lg text-sm dark:bg-gray-800 dark:text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Protéines (g)</label>
+                            <input type="number" step="0.1" id="foodProt" required class="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-800 rounded-lg text-sm dark:bg-gray-800 dark:text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Glucides (g)</label>
+                            <input type="number" step="0.1" id="foodCarb" required class="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-800 rounded-lg text-sm dark:bg-gray-800 dark:text-white">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Lipides (g)</label>
+                            <input type="number" step="0.1" id="foodLip" required class="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-800 rounded-lg text-sm dark:bg-gray-800 dark:text-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bienfaits sur le corps</label>
+                        <textarea id="foodBenefits" required rows="2" class="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-800 rounded-lg text-sm dark:bg-gray-800 dark:text-white" placeholder="Ex: Améliore la digestion, riche en antioxydants..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Méfaits ou Précautions</label>
+                        <textarea id="foodHarms" required rows="2" class="mt-1 w-full px-3 py-2 border border-gray-300 dark:border-gray-800 rounded-lg text-sm dark:bg-gray-800 dark:text-white" placeholder="Ex: À consommer avec modération en cas de diabète..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 rounded-lg transition text-sm">
+                        Ajouter à la liste
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal pour l'affichage de l'image en grand (Lightbox) -->
+    <div id="imageModal" onclick="closeModal(event)" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="relative max-w-3xl w-full bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl flex flex-col transition-colors duration-300" onclick="event.stopPropagation()">
+            <button onclick="closeModal(null)" class="absolute top-4 right-4 bg-black/60 hover:bg-black text-white rounded-full w-10 h-10 flex items-center justify-center transition z-10">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <img id="modalImg" src="" alt="" class="w-full max-h-[75vh] object-cover">
+            <div class="p-4 bg-white dark:bg-gray-900 text-center border-t dark:border-gray-800">
+                <h3 id="modalTitle" class="text-xl font-bold text-gray-800 dark:text-white"></h3>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-gray-800 text-gray-400 py-6 mt-12">
+        <div class="container mx-auto px-4 text-center text-sm">
+            <p>&copy; 2026 <strong>zolaliment</strong>. Conçu pour informer sur la nutrition.</p>
+        </div>
+    </footer>
+
+    <!-- Logique JavaScript de l'application -->
+    <script>
+
+        let foods = [
+            {
+                name: "Pomme",
+                image: "https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=600&auto=format&fit=crop&q=60",
+                calories: 52,
+                proteins: 0.3,
+                carbs: 14,
+                lipids: 0.2,
+                benefits: "Riche en fibres solubles (pectine) qui favorisent la digestion et augmentent la satiété. Contient des antioxydants protecteurs pour le système cardiovasculaire.",
+                harms: "L'acidité peut affecter l'émail des dents en cas de consommation excessive. Les pépins contiennent de l'amygdaline et ne doivent pas être ingérés en grande quantité."
+            },
+            {
+                name: "Avocat",
+                image: "https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?w=600&auto=format&fit=crop&q=60",
+                calories: 160,
+                proteins: 2,
+                carbs: 9,
+                lipids: 15,
+                benefits: "Excellente source d'acides gras mono-insaturés (bons pour le cœur), de potassium et de vitamines (B, E, K). Favorise la régulation du cholestérol.",
+                harms: "Étant calorique, une consommation excessive peut entraver un déficit calorique. De rares cas d'allergies croisées (notamment au latex) existent."
+            },
+            {
+                name: "Fraise",
+                image: "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=600&auto=format&fit=crop&q=60",
+                calories: 32,
+                proteins: 0.7,
+                carbs: 7.7,
+                lipids: 0.3,
+                benefits: "Très peu calorique et riche en eau. Excellente source de vitamine C et de manganèse pour soutenir le système immunitaire et la santé de la peau.",
+                harms: "C'est un aliment histamino-libérateur. Sa consommation peut déclencher des réactions allergiques bénignes (comme de l'urticaire) chez les personnes sensibles."
+            },
+            {
+                name: "Banane",
+                image: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600&auto=format&fit=crop&q=60",
+                calories: 89,
+                proteins: 1.1,
+                carbs: 23,
+                lipids: 0.3,
+                benefits: "Riche en potassium, essentiel pour la fonction cardiaque et la régulation de la tension artérielle. Fournit une énergie rapide idéale pour les sportifs.",
+                harms: "Assez riche en glucides. Sa consommation doit être encadrée chez les personnes diabétiques ou souffrant d'insuffisance rénale sévère (à cause du potassium)."
+            },
+            {
+                name: "Orange",
+                image: "https://images.unsplash.com/photo-1547514701-42782101795e?w=600&auto=format&fit=crop&q=60",
+                calories: 47,
+                proteins: 0.9,
+                carbs: 12,
+                lipids: 0.1,
+                benefits: "Célèbre pour sa richesse en vitamine C, elle stimule les défenses naturelles et améliore considérablement l'assimilation du fer d'origine végétale.",
+                harms: "L'acide citrique contenu dans l'orange peut irriter l'estomac des personnes sujettes aux reflux acides et endommager l'émail dentaire si consommée brute en excès."
+            },
+            {
+                name: "Citron",
+                image: "https://images.unsplash.com/photo-1590502593747-42a996133562?w=600&auto=format&fit=crop&q=60",
+                calories: 29,
+                proteins: 1.1,
+                carbs: 9,
+                lipids: 0.3,
+                benefits: "Très riche en vitamine C et en acide citrique. Favorise la digestion, stimule les fonctions biliaires et aide à réguler le pH corporel.",
+                harms: "L'acidité directe est agressive pour l'émail dentaire et peut aggraver les brûlures d'estomac ou les aphtes chez les sujets sensibles."
+            },
+            {
+                name: "Myrtille",
+                image: "https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=600&auto=format&fit=crop&q=60",
+                calories: 57,
+                proteins: 0.7,
+                carbs: 14,
+                lipids: 0.3,
+                benefits: "Concentrée en antioxydants puissants (anthocyanes). Excellente pour la vision, la mémoire et la protection des vaisseaux sanguins.",
+                harms: "Peut avoir un léger effet laxatif si consommée en excès. Contient des salicylates naturels, à surveiller en cas d'hypersensibilité."
+            },
+            {
+                name: "Ananas",
+                image: "https://images.unsplash.com/photo-1550258987-190a2d41a8ba?w=600&auto=format&fit=crop&q=60",
+                calories: 50,
+                proteins: 0.5,
+                carbs: 13,
+                lipids: 0.1,
+                benefits: "Contient de la bromélaïne, une enzyme anti-inflammatoire qui aide à digérer les protéines et aide à résorber les œdèmes légers.",
+                harms: "Peut provoquer des aphtes ou irriter la bouche en raison de l'acidité. Déconseillé en cas d'allergie croisée avec le latex ou de traitement anticoagulant."
+            },
+            {
+                name: "Tomate",
+                image: "https://images.unsplash.com/photo-1561136594-7f68413baa99?w=600&auto=format&fit=crop&q=60",
+                calories: 18,
+                proteins: 0.9,
+                carbs: 3.9,
+                lipids: 0.2,
+                benefits: "Excellente source de lycopène, un antioxydant protecteur pour la prostate et la peau. Très hydratante et pauvre en calories.",
+                harms: "La peau et les pépins peuvent être difficiles à tolérer pour les colons irritables. L'acidité peut affecter les estomacs fragiles."
+            },
+            {
+                name: "Épinard",
+                image: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=600&auto=format&fit=crop&q=60",
+                calories: 23,
+                proteins: 2.9,
+                carbs: 3.6,
+                lipids: 0.4,
+                benefits: "Riche en fer d'origine végétale, en fibres, en lutéine pour les yeux, ainsi qu'en vitamines A, C et K pour la solidité des os.",
+                harms: "Riche en oxalates, à éviter pour les personnes sujettes aux calculs rénaux. Sa teneur en vitamine K requiert de la vigilance sous traitement anticoagulant."
+            },
+            {
+                name: "Brocoli",
+                image: "https://images.unsplash.com/photo-1584270354949-c26b0d5b4a0c?w=600&auto=format&fit=crop&q=60",
+                calories: 34,
+                proteins: 2.8,
+                carbs: 7,
+                lipids: 0.4,
+                benefits: "Contient du sulforaphane, un composé soufré aux vertus protectrices majeures contre les cancers. Très riche en vitamine C.",
+                harms: "Peut générer des ballonnements ou des gaz intestinaux. Contient des composés goitrogènes qui interfèrent avec l'iode (à modérer en cas de trouble de la thyroïde)."
+            },
+            {
+                name: "Gingembre",
+                image: "data:image/jpeg;base64,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",
+                calories: 80,
+                proteins: 1.8,
+                carbs: 18,
+                lipids: 0.8,
+                benefits: "Remède traditionnel puissant contre les nausées. Stimule efficacement la digestion et possède d'importantes propriétés anti-inflammatoires.",
+                harms: "Peut provoquer de légères brûlures gastriques ou reflux en grande quantité. Déconseillé sans avis médical en cas de calculs biliaires."
+            },
+            {
+                name: "Ail",
+                image: "https://images.unsplash.com/photo-1540148426945-6cf22a6b2383?w=600&auto=format&fit=crop&q=60",
+                calories: 149,
+                proteins: 6.4,
+                carbs: 33,
+                lipids: 0.5,
+                benefits: "Véritable antibiotique et antiseptique naturel. Aide à fluidifier le sang, à réguler la tension artérielle et soutient les défenses immunitaires.",
+                harms: "Peut causer une mauvaise haleine persistante ou des ballonnements. À limiter avant une chirurgie en raison de ses effets anticoagulants naturels."
+            },
+            {
+                name: "Saumon",
+                image: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=600&auto=format&fit=crop&q=60",
+                calories: 208,
+                proteins: 20,
+                carbs: 0,
+                lipids: 13,
+                benefits: "Très riche en acides gras oméga-3 essentiels pour le cerveau et le cœur. Fournit des protéines complètes et de la vitamine D.",
+                harms: "Le saumon d'élevage ou issu de zones polluées peut accumuler des métaux lourds (mercure, PCB). Il est conseillé de varier les sources de poissons."
+            },
+            {
+                name: "Poulet (Blanc)",
+                image: "https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=600&auto=format&fit=crop&q=60",
+                calories: 120,
+                proteins: 26,
+                carbs: 0,
+                lipids: 2.6,
+                benefits: "Viande blanche très maigre, riche en protéines complètes de haute qualité idéales pour l'entretien musculaire et le maintien de la satiété.",
+                harms: "Exige une cuisson irréprochable et des règles d'hygiène strictes en cuisine afin d'éviter les contaminations à la salmonelle ou au campylobacter."
+            },
+            {
+                name: "Œuf",
+                image: "https://images.unsplash.com/photo-1639194335563-d56b83f0060c?w=600&auto=format&fit=crop&q=60",
+                calories: 155,
+                proteins: 13,
+                carbs: 1.1,
+                lipids: 11,
+                benefits: "Contient des protéines de haute valeur biologique avec tous les acides aminés essentiels. Riche en choline pour le cerveau et en lutéine pour les yeux.",
+                harms: "Bien que modéré pour la plupart, le jaune d'œuf contient du cholestérol. Risques de contamination bactérienne (salmonellose) s'il est consommé cru ou mal conservé."
+            },
+            {
+                name: "Lentilles",
+                image: "https://images.unsplash.com/photo-1763368392508-3d4bddfdd20a?w=600&auto=format&fit=crop&q=60",
+                calories: 116,
+                proteins: 9,
+                carbs: 20,
+                lipids: 0.4,
+                benefits: "Formidable source de protéines végétales, de fer et de fibres. Index glycémique très bas qui favorise une sensation durable de satiété.",
+                harms: "Peut provoquer des flatulences ou des inconforts abdominaux chez les personnes peu habituées aux fibres ou souffrant de colopathie fonctionnelle."
+            },
+            {
+                name: "Riz Complet",
+                image: "https://plus.unsplash.com/premium_photo-1705338026411-00639520a438?w=600&auto=format&fit=crop&q=60",
+                calories: 111,
+                proteins: 2.6,
+                carbs: 23,
+                lipids: 0.9,
+                benefits: "Glucides complexes à diffusion très lente. Conserve son enveloppe externe, riche en fibres, magnésium, zinc et vitamines du groupe B.",
+                harms: "Le riz complet retient naturellement de faibles doses d'arsenic du sol dans son enveloppe. Il convient de bien le rincer et de varier ses céréales."
+            },
+            {
+                name: "Amande",
+                image: "https://images.unsplash.com/photo-1631815333332-e3ffb24e2bf8?w=600&auto=format&fit=crop&q=60",
+                calories: 579,
+                proteins: 21,
+                carbs: 22,
+                lipids: 49,
+                benefits: "Excellente source de vitamine E (antioxydante), de magnésium contre l'anxiété et de graisses saines de type mono-insaturées.",
+                harms: "Densité calorique très élevée (à limiter en cas d'objectif de perte de poids). Contient des phytates qui empêchent en partie l'assimilation du fer et du zinc."
+            },
+            {
+                name: "Noix de Grenoble",
+                image: "https://images.unsplash.com/photo-1635843108103-9af0ea224a19?w=600&auto=format&fit=crop&q=60",
+                calories: 654,
+                proteins: 15,
+                carbs: 14,
+                lipids: 65,
+                benefits: "Championne des oméga-3 végétaux (acide alpha-linolénique). Excellent carburant pour la mémoire, la concentration et la lutte contre l'inflammation.",
+                harms: "Très calorique. Peut favoriser l'apparition d'aphtes douloureux chez les personnes prédisposées. Risques d'allergies sévères."
+            },
+            {
+                name: "Yaourt Nature",
+                image: "https://images.unsplash.com/photo-1641196936589-7df4db18de66?w=600&auto=format&fit=crop&q=60",
+                calories: 61,
+                proteins: 3.5,
+                carbs: 4.7,
+                lipids: 3.3,
+                benefits: "Source de probiotiques (bactéries amies) qui régénèrent et protègent la flore intestinale. Apporte du calcium et du phosphore pour les os.",
+                harms: "Inconfort intestinal possible chez les personnes souffrant d'intolérance sévère au lactose ou aux protéines de lait."
+            },
+            {
+                name: "Miel",
+                image: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62?w=600&auto=format&fit=crop&q=60",
+                calories: 304,
+                proteins: 0.3,
+                carbs: 82,
+                lipids: 0,
+                benefits: "Propriétés cicatrisantes, antibactériennes et antiseptiques éprouvées. Calme la toux et s'avère une alternative naturelle plus riche que le sucre blanc.",
+                harms: "Reste très riche en sucres (fructose et glucose) et à limiter pour les diabétiques. Strictement interdit aux nourrissons de moins de 1 an (risque de botulisme)."
+            },
+            {
+                name: "Chocolat Noir (70%)",
+                image: "https://images.unsplash.com/photo-1511381939415-e44015466834?w=600&auto=format&fit=crop&q=60",
+                calories: 546,
+                proteins: 4.9,
+                carbs: 61,
+                lipids: 31,
+                benefits: "Riche en flavonoïdes (antioxydants puissants) qui aident à réduire la pression artérielle et à améliorer l'humeur grâce au magnésium.",
+                harms: "Très dense en calories et en lipides. Peut provoquer des brûlures d'estomac (reflux gastrique) ou des migraines chez les personnes sensibles."
+            },
+            {
+                name: "Huile d'Olive",
+                image: "https://images.unsplash.com/photo-1652282556241-0ce13285d00f?w=600&auto=format&fit=crop&q=60",
+                calories: 884,
+                proteins: 0,
+                carbs: 0,
+                lipids: 100,
+                benefits: "Cœur du régime méditerranéen. Abondance d'acides gras mono-insaturés (bénéfiques pour le cholestérol) et de polyphénols antioxydants protecteurs.",
+                harms: "C'est un lipide pur. Elle contient environ 90 kcal par cuillère à soupe et doit être consommée avec modération pour éviter les excès caloriques."
+            },
+            {
+                name:'Mangue',
+                image:"https://plus.unsplash.com/premium_photo-1695055513645-1f666594920c?w=600&auto=format&fit=crop&q=60",
+                calories: 120,
+                proteins: 1.6,
+                carbs : 30,
+                lipids:0.6,
+                benefits:"La mangue contient des fibres solubles et des enzymes digestives naturelles (comme les amylases) qui aident l'estomac à digérer les aliments et facilitent le transit intestinal.",
+                harms:"La peau de la mangue contient de l'urushiol, une substance que l'on retrouve aussi dans le lierre vénéneux. Certaines personnes sensibles peuvent développer des démangeaisons ou des rougeurs autour de la bouche en rongeant la peau. De plus, il existe des allergies croisées fréquentes avec le latex ou le pollen de bouleau.",
+            },
+            {
+                name:"Raisin",
+                image:"https://plus.unsplash.com/premium_photo-1666270423730-9af384b9cb0f?w=600&auto=format&fit=crop&q=60",
+                calories:67,
+                proteins:0.6,
+                carbs:16,
+                lipids:0.3,
+                benefits:"Il contient une belle quantité de potassium. Ce minéral aide à réguler la tension artérielle et à éliminer l'excès de sodium.",
+                harms:"Dans l'agriculture conventionnelle, le raisin fait malheureusement partie des fruits les plus traités. Comme on mange la peau, il est fortement recommandé de bien le laver, ou de privilégier le bio.",
+            },
+            {
+                name:"Cerise",
+                image:"https://plus.unsplash.com/premium_photo-1688671923138-ff74e0f9a810?w=600&auto=format&fit=crop&q=60",
+                calories:60,
+                proteins:1,
+                carbs:12,
+                lipids:0.3,
+                benefits:"Une poignée de cerises apporte une bonne dose d'énergie, renforce le système immunitaire et aide à maintenir une bonne fonction musculaire et cardiaque.",
+                harms:"Même si son index glycémique est plutôt bas, elle reste riche en fructose. À consommer avec un peu de modération si tu dois surveiller ta glycémie de près."
+            }
+        ];
+
+        // Fonction pour afficher les aliments à l'écran
+        function displayFoods(foodList) {
+            const container = document.getElementById('foodsContainer');
+            const noResult = document.getElementById('noResult');
+            container.innerHTML = '';
+
+            if (foodList.length === 0) {
+                noResult.classList.remove('hidden');
+                return;
+            } else {
+                noResult.classList.add('hidden');
+            }
+
+            foodList.forEach(food => {
+                const card = document.createElement('div');
+                card.className = "bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden flex flex-col justify-between hover:shadow-md transition duration-300";
+                card.innerHTML = `
+                    <div>
+                        <!-- Image de l'Aliment (Cliquable avec zoom) -->
+                        <div class="h-48 w-full overflow-hidden bg-gray-100 dark:bg-gray-800 relative group cursor-pointer" onclick="openModal('${food.image}', '${food.name}')">
+                            <img src="${food.image}" alt="${food.name}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                            
+                            <!-- Indicateur visuel d'agrandissement -->
+                            <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition duration-300">
+                                <span class="bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center shadow-sm">
+                                    <i class="fa-solid fa-magnifying-glass-plus mr-1"></i> Agrandir
+                                </span>
+                            </div>
+
+                            <span class="absolute top-3 right-3 text-xs font-semibold bg-white/95 dark:bg-gray-800 text-gray-800 dark:text-white px-3 py-1.5 rounded-full shadow-sm backdrop-blur-sm z-10" onclick="event.stopPropagation()">
+                                ${food.calories} kcal <span class="text-gray-500">/ 100g</span>
+                            </span>
+                        </div>
+
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold text-gray-800 dark:text-white mb-3 border-b pb-2 dark:border-gray-800">
+                                ${food.name}
+                            </h4>
+                            
+                            <!-- Valeurs Nutritionnelles -->
+                            <div class="grid grid-cols-3 gap-2 text-center text-xs mb-4">
+                                <div class="bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 p-2 rounded-lg">
+                                    <span class="font-bold block">${food.proteins}g</span> Protéines
+                                </div>
+                                <div class="bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 p-2 rounded-lg">
+                                    <span class="font-bold block">${food.carbs}g</span> Glucides
+                                </div>
+                                <div class="bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-300 p-2 rounded-lg">
+                                    <span class="font-bold block">${food.lipids}g</span> Lipides
+                                </div>
+                            </div>
+
+                            <!-- Bienfaits -->
+                            <div class="mb-4">
+                                <h5 class="text-sm font-semibold text-emerald-700 dark:text-emerald-400 flex items-center mb-1">
+                                    <i class="fa-solid fa-circle-check mr-1.5"></i> Bienfaits
+                                </h5>
+                                <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">${food.benefits}</p>
+                            </div>
+
+                            <!-- Méfaits -->
+                            <div>
+                                <h5 class="text-sm font-semibold text-rose-700 dark:text-rose-400 flex items-center mb-1">
+                                    <i class="fa-solid fa-triangle-exclamation mr-1.5"></i> Méfaits & Précautions
+                                </h5>
+                                <p class="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">${food.harms}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Fonctions pour gérer le Thème Jour/Nuit
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (isDark) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+                localStorage.setItem('theme', 'light');
+            }
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const themeIcon = document.getElementById('themeIcon');
+            
+            if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+
+        // Fonctions pour gérer la visionneuse d'image (Modal/Lightbox)
+        function openModal(imageSrc, foodName) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImg');
+            const modalTitle = document.getElementById('modalTitle');
+
+            modalImg.src = imageSrc;
+            modalImg.alt = foodName;
+            modalTitle.textContent = foodName;
+
+            modal.classList.remove('hidden');
+            document.body.classList.add('overflow-hidden'); // Empêche de scroller le fond
+        }
+
+        function closeModal(event) {
+            const modal = document.getElementById('imageModal');
+            modal.classList.add('hidden');
+            document.body.classList.remove('overflow-hidden');
+        }
+
+        // Fermeture du modal avec la touche Échap
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeModal();
+            }
+        });
+
+        // Fonction pour filtrer les aliments lors de la recherche
+        function filterFoods() {
+            const query = document.getElementById('searchBar').value.toLowerCase().trim();
+            const filtered = foods.filter(food => food.name.toLowerCase().includes(query));
+            displayFoods(filtered);
+        }
+
+        // Fonction pour ajouter un nouvel aliment
+        function addNewFood(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('foodName').value;
+            let image = document.getElementById('foodImg').value.trim();
+            const calories = parseInt(document.getElementById('foodCal').value);
+            const proteins = parseFloat(document.getElementById('foodProt').value);
+            const carbs = parseFloat(document.getElementById('foodCarb').value);
+            const lipids = parseFloat(document.getElementById('foodLip').value);
+            const benefits = document.getElementById('foodBenefits').value;
+            const harms = document.getElementById('foodHarms').value;
+
+            // Image par défaut si l'URL est vide
+            if (!image) {
+                image = "https://images.unsplash.com/photo-1490818621748-5b3e2b3dd44e?w=400&auto=format&fit=crop&q=60";
+            }
+
+            const newFood = { name, image, calories, proteins, carbs, lipids, benefits, harms };
+
+            // Ajouter au début du tableau pour qu'il apparaisse en premier
+            foods.unshift(newFood);
+
+            // Réinitialiser le formulaire
+            document.getElementById('addFoodForm').reset();
+
+            // Effacer la barre de recherche pour tout afficher
+            document.getElementById('searchBar').value = '';
+
+            // Mettre à jour l'affichage
+            displayFoods(foods);
+        }
+
+        // Chargement initial des données et du thème
+        window.onload = function() {
+            loadTheme();
+            displayFoods(foods);
+        };
+    </script>
+</body>
+</html>
